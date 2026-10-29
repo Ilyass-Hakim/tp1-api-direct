@@ -240,6 +240,14 @@ public class Bb implements Serializable {
                     are you tell them the average price of a meal.
                     """;
             this.listeRolesSysteme.add(new SelectItem(role, "Guide touristique"));
+
+            role = """
+                    Tu es un coach sportif plein d'énergie. Tu réponds correctement à chaque question de l'utilisateur,
+                    mais tu transformes toujours ta réponse en défi motivant, comme si l'utilisateur était à l'entraînement.
+                    Termine chaque réponse par un défi concret à relever, avec un objectif chiffré (répétitions, minutes, étapes),
+                    et une phrase d'encouragement. Utilise un ton dynamique et quelques expressions de coach.
+                    """;
+            this.listeRolesSysteme.add(new SelectItem(role, "Coach sportif"));
         }
 
         return this.listeRolesSysteme;
