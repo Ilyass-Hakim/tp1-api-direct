@@ -1,7 +1,8 @@
 package ma.hakim.tp1apidirect.jsf;
 
 
-import ma.hakim.tp1apidirect.service.GenerateurReponse;
+import ma.hakim.tp1apidirect.llm.JsonAdapterPourGemini;
+import ma.hakim.tp1apidirect.llm.LlmInteraction;
 import jakarta.faces.application.FacesMessage;
 import jakarta.faces.context.FacesContext;
 import jakarta.faces.model.SelectItem;
@@ -11,6 +12,7 @@ import jakarta.inject.Named;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -71,7 +73,7 @@ public class Bb implements Serializable {
      * Service pour modifier la question et générer la réponse.
      */
     @Inject
-    private GenerateurReponse generateurReponse;
+    private JsonAdapterPourGemini jsonAdapter;
 
     /**
      * Contexte JSF. Utilisé pour qu'un message d'erreur s'affiche dans le formulaire.
@@ -168,13 +170,24 @@ public class Bb implements Serializable {
         }
         
         // Traite la question pour construire la réponse.
-        String roleSystemePourModification = null;
         if (this.conversation.isEmpty()) { // Si la conversation n'a pas encore commencé
-            roleSystemePourModification = this.roleSysteme; // Pour GenerateurReponse.modifier()
+            jsonAdapter.setSystemRole(this.roleSysteme);
             // Fige la liste déroulante qui permet de choisir le rôle système
             this.roleSystemeChangeable = false;
         }
-        this.reponse += this.generateurReponse.genererReponse(this.question, roleSystemePourModification);
+        try {
+          LlmInteraction interaction = jsonAdapter.envoyerRequete(question);
+          this.reponse = interaction.reponseExtraite();
+          this.texteRequeteJson = interaction.questionJson();
+          this.texteReponseJson = interaction.reponseJson();
+        } catch (Exception e) {
+           this.reponse = "Erreur : " + e.getMessage();
+           FacesMessage message = 
+               new FacesMessage(FacesMessage.SEVERITY_ERROR,
+                                "Problème de connexion avec l'API du LLM", 
+                                "Problème de connexion avec l'API du LLM" + e.getMessage() + "\n" + Arrays.toString(e.getStackTrace()));
+           facesContext.addMessage(null, message);
+        }
         
         // La conversation contient l'historique des questions-réponses depuis le début.
         afficherConversation();
